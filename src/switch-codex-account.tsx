@@ -196,13 +196,11 @@ export default function Command() {
             keywords={[account.email, account.alias ?? "", account.account_name ?? "", account.plan ?? ""]}
             accessories={[
               {
-                text: windowLabel(account.usage.primary, copy.fiveHour),
-                tooltip: resetTooltip(account.usage.primary),
-              },
-              { text: "|" },
-              {
-                text: windowLabel(account.usage.secondary, copy.week),
-                tooltip: resetTooltip(account.usage.secondary),
+                text: `${windowLabel(account.usage.primary, copy.fiveHour)} | ${windowLabel(account.usage.secondary, copy.week)}`,
+                tooltip:
+                  [resetTooltip(account.usage.primary), resetTooltip(account.usage.secondary)]
+                    .filter(Boolean)
+                    .join("\n") || undefined,
               },
               {
                 tag: {
