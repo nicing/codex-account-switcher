@@ -21,6 +21,7 @@ import {
   removeAccount,
   switchAccount,
 } from "./lib/codex-auth";
+import { getCopy } from "./lib/i18n";
 import {
   accountSubtitle,
   accountTitle,
@@ -41,6 +42,7 @@ type ViewState = {
 export default function Command() {
   const [state, setState] = useState<ViewState>({ accounts: [], isLoading: true });
   const refreshMode = getRefreshMode();
+  const copy = getCopy();
 
   const load = useCallback(async () => {
     setState((current) => ({ ...current, isLoading: true, error: undefined }));
@@ -48,10 +50,10 @@ export default function Command() {
       const result = await listAccounts(refreshMode);
       setState({ accounts: result.accounts, isLoading: false });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "无法读取 Codex 账户。";
+      const message = error instanceof Error ? error.message : copy.unableToReadAccounts;
       setState({ accounts: [], isLoading: false, error: message });
     }
-  }, [refreshMode]);
+  }, [copy, refreshMode]);
 
   useEffect(() => {
     void load();
@@ -60,60 +62,60 @@ export default function Command() {
   const performSwitch = useCallback(
     async (account: CodexAccount) => {
       if (account.active) {
-        await showToast({ style: Toast.Style.Success, title: "这个账户已在使用" });
+        await showToast({ style: Toast.Style.Success, title: copy.accountAlreadyActive });
         return;
       }
 
       const toast = await showToast({
         style: Toast.Style.Animated,
-        title: `正在切换到 ${accountTitle(account)}`,
+        title: copy.switchingTo(accountTitle(account)),
       });
       try {
         await switchAccount(account.account_key);
         toast.style = Toast.Style.Success;
-        toast.title = `已切换到 ${accountTitle(account)}`;
-        toast.message = "重启正在运行的 Codex 客户端后生效";
+        toast.title = copy.switchedTo(accountTitle(account));
+        toast.message = copy.restartCodexClient;
         await load();
       } catch (error) {
         toast.style = Toast.Style.Failure;
-        toast.title = "切换失败";
-        toast.message = error instanceof CodexAuthError ? error.message : "请稍后重试";
+        toast.title = copy.switchFailed;
+        toast.message = error instanceof CodexAuthError ? error.message : copy.tryAgain;
       }
     },
-    [load],
+    [copy, load],
   );
 
   const performLogin = useCallback(async () => {
     const toast = await showToast({
       style: Toast.Style.Animated,
-      title: "正在打开 Codex 登录",
-      message: "请在浏览器中完成登录",
+      title: copy.openingCodexLogin,
+      message: copy.completeLoginInBrowser,
     });
     try {
       await loginAccount();
       toast.style = Toast.Style.Success;
-      toast.title = "账户已添加";
-      toast.message = "新账户已设为当前账户";
+      toast.title = copy.accountAdded;
+      toast.message = copy.newAccountIsActive;
       await load();
     } catch (error) {
       toast.style = Toast.Style.Failure;
-      toast.title = "登录失败";
-      toast.message = error instanceof CodexAuthError ? error.message : "请稍后重试";
+      toast.title = copy.loginFailed;
+      toast.message = error instanceof CodexAuthError ? error.message : copy.tryAgain;
     }
-  }, [load]);
+  }, [copy, load]);
 
   const performRemove = useCallback(
     async (account: CodexAccount) => {
       const confirmed = await confirmAlert({
         icon: Icon.Trash,
-        title: `删除 ${accountTitle(account)}？`,
+        title: copy.removeAccountTitle(accountTitle(account)),
         message: account.active
           ? state.accounts.length === 1
-            ? "这是当前使用的最后一个账户。删除后，本机 Codex 登录也会被移除。"
-            : "这是当前使用的账户。删除后，codex-auth 会自动选择另一个已保存账户。"
-          : "将从 codex-auth 中删除这个账户。此操作无法撤销。",
+            ? copy.removeLastActiveAccountMessage
+            : copy.removeActiveAccountMessage
+          : copy.removeAccountMessage,
         primaryAction: {
-          title: "删除账户",
+          title: copy.removeAccount,
           style: Alert.ActionStyle.Destructive,
         },
       });
@@ -121,58 +123,66 @@ export default function Command() {
 
       const toast = await showToast({
         style: Toast.Style.Animated,
-        title: `正在删除 ${accountTitle(account)}`,
+        title: copy.removingAccount(accountTitle(account)),
       });
       try {
         await removeAccount(account.account_key);
         toast.style = Toast.Style.Success;
-        toast.title = "账户已删除";
-        toast.message = account.active ? "当前 Codex 账户已更新" : undefined;
+        toast.title = copy.accountRemoved;
+        toast.message = account.active ? copy.activeAccountUpdated : undefined;
         await load();
       } catch (error) {
         toast.style = Toast.Style.Failure;
-        toast.title = "删除失败";
-        toast.message = error instanceof CodexAuthError ? error.message : "请稍后重试";
+        toast.title = copy.removeFailed;
+        toast.message = error instanceof CodexAuthError ? error.message : copy.tryAgain;
       }
     },
-    [load, state.accounts.length],
+    [copy, load, state.accounts.length],
   );
 
   return (
-    <List isLoading={state.isLoading} searchBarPlaceholder="搜索账户、别名或工作区">
+    <List isLoading={state.isLoading} searchBarPlaceholder={copy.searchPlaceholder}>
       {state.error ? (
         <List.EmptyView
           icon={Icon.Warning}
-          title="无法读取 Codex 账户"
+          title={copy.unableToReadAccounts}
           description={state.error}
           actions={
             <ActionPanel>
-              <Action title="重试" icon={Icon.ArrowClockwise} onAction={load} />
+              <Action title={copy.retry} icon={Icon.ArrowClockwise} onAction={load} />
               <Action
-                title="新增账户"
+                title={copy.addAccount}
                 icon={Icon.AddPerson}
                 shortcut={Keyboard.Shortcut.Common.New}
                 onAction={performLogin}
               />
-              <Action title="打开扩展设置" icon={Icon.Gear} onAction={openExtensionPreferences} />
+              <Action
+                title={copy.openExtensionPreferences}
+                icon={Icon.Gear}
+                onAction={openExtensionPreferences}
+              />
             </ActionPanel>
           }
         />
       ) : state.accounts.length === 0 && !state.isLoading ? (
         <List.EmptyView
           icon={Icon.PersonCircle}
-          title="还没有保存的账户"
-          description="登录 Codex 后，账户会自动添加到这里。"
+          title={copy.noSavedAccounts}
+          description={copy.noSavedAccountsDescription}
           actions={
             <ActionPanel>
               <Action
-                title="新增账户"
+                title={copy.addAccount}
                 icon={Icon.AddPerson}
                 shortcut={Keyboard.Shortcut.Common.New}
                 onAction={performLogin}
               />
-              <Action title="刷新" icon={Icon.ArrowClockwise} onAction={load} />
-              <Action title="打开扩展设置" icon={Icon.Gear} onAction={openExtensionPreferences} />
+              <Action title={copy.refresh} icon={Icon.ArrowClockwise} onAction={load} />
+              <Action
+                title={copy.openExtensionPreferences}
+                icon={Icon.Gear}
+                onAction={openExtensionPreferences}
+              />
             </ActionPanel>
           }
         />
@@ -188,7 +198,7 @@ export default function Command() {
               ...(account.usage.primary
                 ? [
                     {
-                      text: windowLabel(account.usage.primary, "5小时"),
+                      text: windowLabel(account.usage.primary, copy.fiveHour),
                       tooltip: resetTooltip(account.usage.primary),
                     },
                   ]
@@ -196,14 +206,14 @@ export default function Command() {
               ...(account.usage.secondary
                 ? [
                     {
-                      text: windowLabel(account.usage.secondary, "周"),
+                      text: windowLabel(account.usage.secondary, copy.week),
                       tooltip: resetTooltip(account.usage.secondary),
                     },
                   ]
                 : []),
               {
                 tag: {
-                  value: planLabel(account.plan) ?? "未知",
+                  value: planLabel(account.plan) ?? copy.unknown,
                   color: planColor(account.plan),
                 },
                 tooltip: `${usageSummary(account)}\n${sourceTooltip(account.usage)}`,
@@ -212,31 +222,35 @@ export default function Command() {
             actions={
               <ActionPanel>
                 <Action
-                  title={account.active ? "当前账户" : "切换到这个账户"}
+                  title={account.active ? copy.currentAccount : copy.switchToThisAccount}
                   icon={account.active ? Icon.CheckCircle : Icon.ArrowRight}
                   onAction={() => performSwitch(account)}
                 />
                 <Action
-                  title="新增账户"
+                  title={copy.addAccount}
                   icon={Icon.AddPerson}
                   shortcut={Keyboard.Shortcut.Common.New}
                   onAction={performLogin}
                 />
                 <Action
-                  title="刷新额度"
+                  title={copy.refreshUsage}
                   icon={Icon.ArrowClockwise}
                   shortcut={Keyboard.Shortcut.Common.Refresh}
                   onAction={load}
                 />
-                <Action.CopyToClipboard title="复制邮箱" content={account.email} />
+                <Action.CopyToClipboard title={copy.copyEmail} content={account.email} />
                 <Action
-                  title="删除账户"
+                  title={copy.removeAccount}
                   icon={Icon.Trash}
                   style={Action.Style.Destructive}
                   shortcut={Keyboard.Shortcut.Common.Remove}
                   onAction={() => performRemove(account)}
                 />
-                <Action title="打开扩展设置" icon={Icon.Gear} onAction={openExtensionPreferences} />
+                <Action
+                  title={copy.openExtensionPreferences}
+                  icon={Icon.Gear}
+                  onAction={openExtensionPreferences}
+                />
               </ActionPanel>
             }
           />

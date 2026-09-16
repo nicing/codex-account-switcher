@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { getPreferenceValues } from "@raycast/api";
+import { getCopy } from "./i18n";
 
 const execFileAsync = promisify(execFile);
 
@@ -121,7 +122,7 @@ async function resolveExecutable(configuredPath?: string): Promise<string> {
   if (configured) {
     const resolved = expandedPath(configured);
     if (await isExecutable(resolved)) return resolved;
-    throw new CodexAuthError(`找不到可执行文件：${resolved}`, "executable_not_found");
+    throw new CodexAuthError(getCopy().executableNotFoundAt(resolved), "executable_not_found");
   }
 
   const candidates = [
@@ -135,10 +136,7 @@ async function resolveExecutable(configuredPath?: string): Promise<string> {
     if (await isExecutable(candidate)) return candidate;
   }
 
-  throw new CodexAuthError(
-    "未找到 codex-auth。请先安装 0.3.0 或更新版本，或在扩展设置中填写路径。",
-    "executable_not_found",
-  );
+  throw new CodexAuthError(getCopy().codexAuthNotFound, "executable_not_found");
 }
 
 function runtimePath(): string {
@@ -156,13 +154,13 @@ function runtimePath(): string {
 
 function parseDocument<T>(stdout: string): T {
   const value = stdout.trim();
-  if (!value) throw new CodexAuthError("codex-auth 没有返回数据。", "empty_output");
+  if (!value) throw new CodexAuthError(getCopy().emptyOutput, "empty_output");
 
   let parsed: T | CodexAuthErrorDocument;
   try {
     parsed = JSON.parse(value) as T | CodexAuthErrorDocument;
   } catch {
-    throw new CodexAuthError("无法读取 codex-auth 输出。请确认已安装 0.3.0 或更新版本。", "invalid_json");
+    throw new CodexAuthError(getCopy().invalidOutput, "invalid_json");
   }
 
   if (typeof parsed === "object" && parsed !== null && "error" in parsed) {
@@ -188,16 +186,13 @@ async function runJson<T>(args: string[]): Promise<T> {
 
     const processError = error as Error & { stdout?: string; stderr?: string; killed?: boolean };
     if (processError.stdout?.trim()) return parseDocument<T>(processError.stdout);
-    if (processError.killed) throw new CodexAuthError("codex-auth 请求超时。", "timeout");
+    if (processError.killed) throw new CodexAuthError(getCopy().requestTimedOut, "timeout");
 
     const detail = processError.stderr?.trim() || processError.message;
     if (detail.includes("unknown flag") && detail.includes("--json")) {
-      throw new CodexAuthError(
-        "当前 codex-auth 版本不支持 Raycast 所需的 JSON 接口。请升级到 0.3.0 或更新版本。",
-        "unsupported_version",
-      );
+      throw new CodexAuthError(getCopy().unsupportedVersion, "unsupported_version");
     }
-    throw new CodexAuthError(detail || "codex-auth 执行失败。", "process_error");
+    throw new CodexAuthError(detail || getCopy().processFailed, "process_error");
   }
 }
 
@@ -214,7 +209,7 @@ async function runPlain(args: string[], timeout = 30_000): Promise<void> {
     });
   } catch (error) {
     const processError = error as Error & { stderr?: string; killed?: boolean };
-    if (processError.killed) throw new CodexAuthError("codex-auth 请求超时。", "timeout");
+    if (processError.killed) throw new CodexAuthError(getCopy().requestTimedOut, "timeout");
     throw new CodexAuthError(processError.stderr?.trim() || processError.message, "process_error");
   }
 }
@@ -227,11 +222,11 @@ async function readRegistry(): Promise<AccountList> {
   try {
     registry = JSON.parse(await readFile(registryPath, "utf8")) as RegistryDocument;
   } catch {
-    throw new CodexAuthError(`无法读取 ${registryPath}`, "registry_error");
+    throw new CodexAuthError(getCopy().registryReadFailed(registryPath), "registry_error");
   }
 
   if (!Array.isArray(registry.accounts)) {
-    throw new CodexAuthError("不支持的 codex-auth 账户注册表格式。", "unsupported_registry");
+    throw new CodexAuthError(getCopy().unsupportedRegistry, "unsupported_registry");
   }
 
   const orderedAccounts = [...registry.accounts].sort((left, right) => {
@@ -320,7 +315,7 @@ export async function listAccounts(mode: RefreshMode, activeOnly = false): Promi
     result = await readRegistry();
   }
   if (result.schema_version !== 1 || result.command !== "list" || !Array.isArray(result.accounts)) {
-    throw new CodexAuthError("不支持的 codex-auth JSON 格式。", "unsupported_schema");
+    throw new CodexAuthError(getCopy().unsupportedSchema, "unsupported_schema");
   }
   return result;
 }
@@ -342,18 +337,18 @@ export async function switchAccount(accountKey: string): Promise<CodexAccount> {
 
     const before = await readRegistry();
     const target = before.accounts.find((account) => account.account_key === accountKey);
-    if (!target) throw new CodexAuthError("找不到要切换的账户。", "account_not_found");
+    if (!target) throw new CodexAuthError(getCopy().accountNotFound, "account_not_found");
     await runPlain(["switch", String(target.number)]);
     const registry = await readRegistry();
     const switchedTo = registry.accounts.find(
       (account) => account.account_key === accountKey && account.active,
     );
-    if (!switchedTo) throw new CodexAuthError("codex-auth 没有确认账户切换结果。", "state_uncertain");
+    if (!switchedTo) throw new CodexAuthError(getCopy().switchNotConfirmed, "state_uncertain");
     result = { schema_version: 1, command: "switch", switched_to: switchedTo };
   }
 
   if (result.schema_version !== 1 || result.command !== "switch" || !result.switched_to) {
-    throw new CodexAuthError("不支持的 codex-auth JSON 格式。", "unsupported_schema");
+    throw new CodexAuthError(getCopy().unsupportedSchema, "unsupported_schema");
   }
   return result.switched_to;
 }
@@ -381,11 +376,11 @@ export async function removeAccount(accountKey: string): Promise<void> {
   try {
     registry = await readRegistry();
   } catch {
-    throw new CodexAuthError("账户删除后无法确认本地状态，请刷新账户列表后再操作。", "state_uncertain");
+    throw new CodexAuthError(getCopy().removalStateUnknown, "state_uncertain");
   }
 
   if (registry.accounts.some((account) => account.account_key === accountKey)) {
-    throw new CodexAuthError("codex-auth 没有确认账户已删除，请刷新账户列表后再操作。", "state_uncertain");
+    throw new CodexAuthError(getCopy().removalNotConfirmed, "state_uncertain");
   }
 }
 

@@ -8,6 +8,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 type ExtensionPreferences = {
+  /** Language - Choose the language used in the extension interface. */
+  "language": "en" | "zh-CN",
   /** codex-auth Executable - Absolute path to codex-auth 0.3.0 or newer. */
   "codexAuthPath"?: string
 }

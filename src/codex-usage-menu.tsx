@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Icon, LaunchType, MenuBarExtra, launchCommand, openExtensionPreferences } from "@raycast/api";
 import { CodexAccount, getRefreshMode, listAccounts } from "./lib/codex-auth";
+import { getCopy } from "./lib/i18n";
 import { accountTitle, remainingPercent, resetTooltip, sourceLabel, windowLabel } from "./lib/presentation";
 
 type MenuState = {
@@ -12,6 +13,7 @@ type MenuState = {
 export default function Command() {
   const [state, setState] = useState<MenuState>({ isLoading: true });
   const refreshMode = getRefreshMode();
+  const copy = getCopy();
 
   const load = useCallback(async () => {
     setState((current) => ({ ...current, isLoading: true, error: undefined }));
@@ -19,9 +21,9 @@ export default function Command() {
       const result = await listAccounts(refreshMode, true);
       setState({ account: result.accounts.find((account) => account.active), isLoading: false });
     } catch (error) {
-      setState({ isLoading: false, error: error instanceof Error ? error.message : "无法读取 Codex 额度。" });
+      setState({ isLoading: false, error: error instanceof Error ? error.message : copy.unableToReadUsage });
     }
-  }, [refreshMode]);
+  }, [copy, refreshMode]);
 
   useEffect(() => {
     void load();
@@ -31,7 +33,7 @@ export default function Command() {
   const primaryRemaining = remainingPercent(account?.usage.primary ?? null);
   const menuTitle = primaryRemaining === null ? undefined : `${primaryRemaining}%`;
   const tooltip = account
-    ? `${accountTitle(account)} · ${windowLabel(account.usage.primary, "5小时")}`
+    ? `${accountTitle(account)} · ${windowLabel(account.usage.primary, copy.fiveHour)}`
     : state.error;
 
   return (
@@ -45,23 +47,31 @@ export default function Command() {
       {account ? (
         <>
           <MenuBarExtra.Item icon={Icon.Person} title={accountTitle(account)} subtitle={account.email} />
-          <MenuBarExtra.Section title="剩余额度">
+          <MenuBarExtra.Section title={copy.remainingUsage}>
             <MenuBarExtra.Item
-              title={windowLabel(account.usage.primary, "5小时")}
+              title={windowLabel(account.usage.primary, copy.fiveHour)}
               subtitle={resetTooltip(account.usage.primary)}
             />
             <MenuBarExtra.Item
-              title={windowLabel(account.usage.secondary, "周")}
+              title={windowLabel(account.usage.secondary, copy.week)}
               subtitle={resetTooltip(account.usage.secondary)}
             />
-            <MenuBarExtra.Item title={`数据来源：${sourceLabel(account.usage)}`} />
+            <MenuBarExtra.Item title={copy.dataSource(sourceLabel(account.usage))} />
           </MenuBarExtra.Section>
         </>
       ) : null}
       <MenuBarExtra.Section>
-        <MenuBarExtra.Item icon={Icon.TwoArrowsClockwise} title="切换账户" onAction={openSwitcher} />
-        <MenuBarExtra.Item icon={Icon.ArrowClockwise} title="刷新" onAction={load} />
-        <MenuBarExtra.Item icon={Icon.Gear} title="扩展设置" onAction={openExtensionPreferences} />
+        <MenuBarExtra.Item
+          icon={Icon.TwoArrowsClockwise}
+          title={copy.switchAccount}
+          onAction={openSwitcher}
+        />
+        <MenuBarExtra.Item icon={Icon.ArrowClockwise} title={copy.refresh} onAction={load} />
+        <MenuBarExtra.Item
+          icon={Icon.Gear}
+          title={copy.extensionPreferences}
+          onAction={openExtensionPreferences}
+        />
       </MenuBarExtra.Section>
     </MenuBarExtra>
   );

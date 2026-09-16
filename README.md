@@ -10,6 +10,7 @@ This extension uses [`codex-auth`](https://github.com/loongphy/codex-auth) for a
 - Search and switch between accounts saved by `codex-auth`
 - Remove an account after a confirmation prompt
 - View 5-hour and weekly usage, reset times, plan type, and update time
+- Use the interface in English or Simplified Chinese
 - Choose between current usage from OpenAI and local cached usage
 - Optionally show the active account's remaining usage in the menu bar
 
@@ -40,6 +41,12 @@ Open **Codex Account Switcher** in Raycast. The action panel lets you:
 Switching accounts updates `~/.codex/auth.json`. Restart a running Codex CLI or Codex app session if it does not pick up the new account automatically.
 
 When the active account is removed, `codex-auth` selects another saved account. Removing the final account also removes the local Codex login.
+
+## Language
+
+English is the default interface language. To use Simplified Chinese, open the extension settings in Raycast and change **Language** to **简体中文**.
+
+Raycast command names, preference labels, and Store metadata remain in English. List content, actions, notifications, confirmation dialogs, menu bar content, usage labels, dates, and extension-generated errors follow the selected language.
 
 ## Usage Refresh Modes
 
