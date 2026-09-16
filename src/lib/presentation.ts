@@ -50,17 +50,27 @@ export function remainingPercent(window: UsageWindow | null): number | null {
   return Math.max(0, Math.min(100, Math.round(100 - window.used_percent)));
 }
 
-export function windowLabel(window: UsageWindow | null, fallback: string): string {
-  if (!window) return `${fallback} --`;
+function usageWindowName(window: UsageWindow | null, fallback: string): string {
+  if (!window) return fallback;
   const copy = getCopy();
   const duration = window.window_minutes;
-  const name =
-    duration >= 7 * 24 * 60
-      ? copy.week
-      : duration >= 24 * 60
-        ? copy.days(Math.round(duration / 1440))
-        : copy.hours(Math.round(duration / 60));
-  return `${name} ${remainingPercent(window)}%`;
+  if (duration >= 7 * 24 * 60) return copy.week;
+  if (duration >= 24 * 60) return copy.days(Math.round(duration / 1440));
+  return copy.hours(Math.round(duration / 60));
+}
+
+function percentageLabel(window: UsageWindow | null): string {
+  const remaining = remainingPercent(window);
+  return remaining === null ? "--" : `${remaining}%`;
+}
+
+export function windowLabel(window: UsageWindow | null, fallback: string): string {
+  return `${usageWindowName(window, fallback)} ${percentageLabel(window)}`;
+}
+
+export function alignedWindowLabel(window: UsageWindow | null, fallback: string): string {
+  const figureSpace = "\u2007";
+  return `${usageWindowName(window, fallback)} ${percentageLabel(window).padStart(4, figureSpace)}`;
 }
 
 export function resetTooltip(window: UsageWindow | null): string | undefined {

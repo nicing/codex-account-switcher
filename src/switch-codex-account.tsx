@@ -23,6 +23,7 @@ import {
 } from "./lib/codex-auth";
 import { getCopy } from "./lib/i18n";
 import {
+  alignedWindowLabel,
   accountSubtitle,
   accountTitle,
   planColor,
@@ -195,22 +196,15 @@ export default function Command() {
             subtitle={accountSubtitle(account)}
             keywords={[account.email, account.alias ?? "", account.account_name ?? "", account.plan ?? ""]}
             accessories={[
-              ...(account.usage.primary
-                ? [
-                    {
-                      text: windowLabel(account.usage.primary, copy.fiveHour),
-                      tooltip: resetTooltip(account.usage.primary),
-                    },
-                  ]
-                : []),
-              ...(account.usage.secondary
-                ? [
-                    {
-                      text: windowLabel(account.usage.secondary, copy.week),
-                      tooltip: resetTooltip(account.usage.secondary),
-                    },
-                  ]
-                : []),
+              {
+                text: windowLabel(account.usage.primary, copy.fiveHour),
+                tooltip: resetTooltip(account.usage.primary),
+              },
+              { text: "|" },
+              {
+                text: alignedWindowLabel(account.usage.secondary, copy.week),
+                tooltip: resetTooltip(account.usage.secondary),
+              },
               {
                 tag: {
                   value: planLabel(account.plan) ?? copy.unknown,
