@@ -13,6 +13,8 @@ import {
   showToast,
 } from "@raycast/api";
 import {
+  CODEX_AUTH_INSTALL_COMMAND,
+  CODEX_AUTH_INSTALL_URL,
   CodexAccount,
   CodexAuthError,
   getRefreshMode,
@@ -38,6 +40,7 @@ type ViewState = {
   accounts: CodexAccount[];
   isLoading: boolean;
   error?: string;
+  errorCode?: string;
 };
 
 export default function Command() {
@@ -46,13 +49,18 @@ export default function Command() {
   const copy = getCopy();
 
   const load = useCallback(async () => {
-    setState((current) => ({ ...current, isLoading: true, error: undefined }));
+    setState((current) => ({ ...current, isLoading: true, error: undefined, errorCode: undefined }));
     try {
       const result = await listAccounts(refreshMode);
       setState({ accounts: result.accounts, isLoading: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : copy.unableToReadAccounts;
-      setState({ accounts: [], isLoading: false, error: message });
+      setState({
+        accounts: [],
+        isLoading: false,
+        error: message,
+        errorCode: error instanceof CodexAuthError ? error.code : undefined,
+      });
     }
   }, [copy, refreshMode]);
 
@@ -143,7 +151,35 @@ export default function Command() {
 
   return (
     <List isLoading={state.isLoading} searchBarPlaceholder={copy.searchPlaceholder}>
-      {state.error ? (
+      {state.errorCode === "executable_not_found" ? (
+        <List.EmptyView
+          icon={Icon.Terminal}
+          title={copy.codexAuthRequired}
+          description={copy.codexAuthRequiredDescription}
+          actions={
+            <ActionPanel>
+              <Action.CopyToClipboard
+                title={copy.copyInstallCommand}
+                content={CODEX_AUTH_INSTALL_COMMAND}
+                onCopy={() =>
+                  void showToast({ style: Toast.Style.Success, title: copy.installCommandCopied })
+                }
+              />
+              <Action.OpenInBrowser
+                title={copy.openInstallationGuide}
+                icon={Icon.Link}
+                url={CODEX_AUTH_INSTALL_URL}
+              />
+              <Action title={copy.retry} icon={Icon.ArrowClockwise} onAction={load} />
+              <Action
+                title={copy.openExtensionPreferences}
+                icon={Icon.Gear}
+                onAction={openExtensionPreferences}
+              />
+            </ActionPanel>
+          }
+        />
+      ) : state.error ? (
         <List.EmptyView
           icon={Icon.Warning}
           title={copy.unableToReadAccounts}

@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
-import { Icon, LaunchType, MenuBarExtra, launchCommand, openExtensionPreferences } from "@raycast/api";
-import { CodexAccount, getRefreshMode, listAccounts } from "./lib/codex-auth";
+import {
+  Clipboard,
+  Icon,
+  LaunchType,
+  MenuBarExtra,
+  launchCommand,
+  open,
+  openExtensionPreferences,
+  showHUD,
+} from "@raycast/api";
+import {
+  CODEX_AUTH_INSTALL_COMMAND,
+  CODEX_AUTH_INSTALL_URL,
+  CodexAccount,
+  CodexAuthError,
+  getRefreshMode,
+  listAccounts,
+} from "./lib/codex-auth";
 import { getCopy } from "./lib/i18n";
 import { accountTitle, remainingPercent, resetTooltip, sourceLabel, windowLabel } from "./lib/presentation";
 
@@ -8,6 +24,7 @@ type MenuState = {
   account?: CodexAccount;
   isLoading: boolean;
   error?: string;
+  errorCode?: string;
 };
 
 export default function Command() {
@@ -16,12 +33,16 @@ export default function Command() {
   const copy = getCopy();
 
   const load = useCallback(async () => {
-    setState((current) => ({ ...current, isLoading: true, error: undefined }));
+    setState((current) => ({ ...current, isLoading: true, error: undefined, errorCode: undefined }));
     try {
       const result = await listAccounts(refreshMode, true);
       setState({ account: result.accounts.find((account) => account.active), isLoading: false });
     } catch (error) {
-      setState({ isLoading: false, error: error instanceof Error ? error.message : copy.unableToReadUsage });
+      setState({
+        isLoading: false,
+        error: error instanceof Error ? error.message : copy.unableToReadUsage,
+        errorCode: error instanceof CodexAuthError ? error.code : undefined,
+      });
     }
   }, [copy, refreshMode]);
 
@@ -35,6 +56,7 @@ export default function Command() {
   const tooltip = account
     ? `${accountTitle(account)} · ${windowLabel(account.usage.primary, copy.fiveHour)}`
     : state.error;
+  const installRequired = state.errorCode === "executable_not_found";
 
   return (
     <MenuBarExtra
@@ -43,8 +65,36 @@ export default function Command() {
       tooltip={tooltip}
       isLoading={state.isLoading}
     >
-      {state.error ? <MenuBarExtra.Item icon={Icon.Warning} title={state.error} /> : null}
-      {account ? (
+      {installRequired ? (
+        <>
+          <MenuBarExtra.Item
+            icon={Icon.Terminal}
+            title={copy.codexAuthRequired}
+            subtitle={copy.codexAuthRequiredDescription}
+          />
+          <MenuBarExtra.Section>
+            <MenuBarExtra.Item
+              icon={Icon.Clipboard}
+              title={copy.copyInstallCommand}
+              onAction={copyInstallCommand}
+            />
+            <MenuBarExtra.Item
+              icon={Icon.Link}
+              title={copy.openInstallationGuide}
+              onAction={() => open(CODEX_AUTH_INSTALL_URL)}
+            />
+            <MenuBarExtra.Item icon={Icon.ArrowClockwise} title={copy.retry} onAction={load} />
+            <MenuBarExtra.Item
+              icon={Icon.Gear}
+              title={copy.extensionPreferences}
+              onAction={openExtensionPreferences}
+            />
+          </MenuBarExtra.Section>
+        </>
+      ) : state.error ? (
+        <MenuBarExtra.Item icon={Icon.Warning} title={state.error} />
+      ) : null}
+      {!installRequired && account ? (
         <>
           <MenuBarExtra.Item icon={Icon.Person} title={accountTitle(account)} subtitle={account.email} />
           <MenuBarExtra.Section title={copy.remainingUsage}>
@@ -60,23 +110,30 @@ export default function Command() {
           </MenuBarExtra.Section>
         </>
       ) : null}
-      <MenuBarExtra.Section>
-        <MenuBarExtra.Item
-          icon={Icon.TwoArrowsClockwise}
-          title={copy.switchAccount}
-          onAction={openSwitcher}
-        />
-        <MenuBarExtra.Item icon={Icon.ArrowClockwise} title={copy.refresh} onAction={load} />
-        <MenuBarExtra.Item
-          icon={Icon.Gear}
-          title={copy.extensionPreferences}
-          onAction={openExtensionPreferences}
-        />
-      </MenuBarExtra.Section>
+      {!installRequired ? (
+        <MenuBarExtra.Section>
+          <MenuBarExtra.Item
+            icon={Icon.TwoArrowsClockwise}
+            title={copy.switchAccount}
+            onAction={openSwitcher}
+          />
+          <MenuBarExtra.Item icon={Icon.ArrowClockwise} title={copy.refresh} onAction={load} />
+          <MenuBarExtra.Item
+            icon={Icon.Gear}
+            title={copy.extensionPreferences}
+            onAction={openExtensionPreferences}
+          />
+        </MenuBarExtra.Section>
+      ) : null}
     </MenuBarExtra>
   );
 }
 
 async function openSwitcher() {
   await launchCommand({ name: "switch-codex-account", type: LaunchType.UserInitiated });
+}
+
+async function copyInstallCommand() {
+  await Clipboard.copy(CODEX_AUTH_INSTALL_COMMAND);
+  await showHUD(getCopy().installCommandCopied);
 }

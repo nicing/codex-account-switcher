@@ -9,6 +9,9 @@ import { getCopy } from "./i18n";
 
 const execFileAsync = promisify(execFile);
 
+export const CODEX_AUTH_INSTALL_COMMAND = "npm install --global @loongphy/codex-auth@0.3.0";
+export const CODEX_AUTH_INSTALL_URL = "https://github.com/Loongphy/codex-auth#install";
+
 export type RefreshMode = "api" | "local";
 
 export type UsageWindow = {

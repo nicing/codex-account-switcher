@@ -15,6 +15,11 @@ export type Copy = {
   searchPlaceholder: string;
   unableToReadAccounts: string;
   unableToReadUsage: string;
+  codexAuthRequired: string;
+  codexAuthRequiredDescription: string;
+  copyInstallCommand: string;
+  installCommandCopied: string;
+  openInstallationGuide: string;
   noSavedAccounts: string;
   noSavedAccountsDescription: string;
   accountAlreadyActive: string;
@@ -85,6 +90,12 @@ const english: Copy = {
   searchPlaceholder: "Search accounts, aliases, or workspaces",
   unableToReadAccounts: "Unable to Read Codex Accounts",
   unableToReadUsage: "Unable to read Codex usage.",
+  codexAuthRequired: "codex-auth Is Required",
+  codexAuthRequiredDescription:
+    "Install codex-auth 0.3.0 or newer, then retry. If it is already installed, set its executable path in Extension Preferences.",
+  copyInstallCommand: "Copy Install Command",
+  installCommandCopied: "Install command copied",
+  openInstallationGuide: "Open Installation Guide",
   noSavedAccounts: "No Saved Accounts",
   noSavedAccountsDescription: "Sign in to Codex to add an account here.",
   accountAlreadyActive: "This account is already active",
@@ -161,6 +172,12 @@ const simplifiedChinese: Copy = {
   searchPlaceholder: "搜索账户、别名或工作区",
   unableToReadAccounts: "无法读取 Codex 账户",
   unableToReadUsage: "无法读取 Codex 额度。",
+  codexAuthRequired: "需要安装 codex-auth",
+  codexAuthRequiredDescription:
+    "请安装 codex-auth 0.3.0 或更新版本，然后重试。如果已经安装，请在扩展设置中填写可执行文件路径。",
+  copyInstallCommand: "复制安装命令",
+  installCommandCopied: "安装命令已复制",
+  openInstallationGuide: "打开安装文档",
   noSavedAccounts: "还没有保存的账户",
   noSavedAccountsDescription: "登录 Codex 后，账户会自动添加到这里。",
   accountAlreadyActive: "这个账户已在使用",
