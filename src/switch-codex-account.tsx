@@ -23,7 +23,6 @@ import {
 } from "./lib/codex-auth";
 import { getCopy } from "./lib/i18n";
 import {
-  alignedWindowLabel,
   accountSubtitle,
   accountTitle,
   planColor,
@@ -202,7 +201,7 @@ export default function Command() {
               },
               { text: "|" },
               {
-                text: alignedWindowLabel(account.usage.secondary, copy.week),
+                text: windowLabel(account.usage.secondary, copy.week),
                 tooltip: resetTooltip(account.usage.secondary),
               },
               {
