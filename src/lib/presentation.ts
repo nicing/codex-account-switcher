@@ -2,6 +2,30 @@ import { Color } from "@raycast/api";
 import type { CodexAccount, UsageSnapshot, UsageWindow } from "./codex-auth";
 import { getCopy } from "./i18n";
 
+const FIGURE_SPACE = "\u2007";
+const HAIR_SPACE = "\u200A";
+const SYSTEM_GLYPH_WIDTHS: Record<string, number> = {
+  "0": 9.214,
+  "1": 6.724,
+  "2": 8.818,
+  "3": 9.17,
+  "4": 9.419,
+  "5": 9.038,
+  "6": 9.316,
+  "7": 8.306,
+  "8": 9.346,
+  "9": 9.316,
+  "%": 13.645,
+  "-": 6.841,
+  [FIGURE_SPACE]: 9.214,
+};
+const HAIR_SPACE_WIDTH = 0.82;
+const PERCENTAGE_TARGET_WIDTH = estimatedSystemTextWidth(`${FIGURE_SPACE}44%`);
+
+function estimatedSystemTextWidth(value: string): number {
+  return [...value].reduce((width, character) => width + (SYSTEM_GLYPH_WIDTHS[character] ?? 0), 0);
+}
+
 export function accountTitle(account: CodexAccount): string {
   return account.alias || account.account_name || account.email;
 }
@@ -64,13 +88,24 @@ function percentageLabel(window: UsageWindow | null): string {
   return remaining === null ? "--" : `${remaining}%`;
 }
 
+function alignedPercentageLabel(window: UsageWindow | null): string {
+  const label = percentageLabel(window).padStart(4, FIGURE_SPACE);
+
+  // Raycast does not expose fixed widths for list accessories. Its system font uses proportional
+  // digits, so equal character counts still render at different widths. These relative glyph widths
+  // let us compensate with hair spaces while keeping the percentage readable.
+  const compensation = HAIR_SPACE.repeat(
+    Math.max(0, Math.ceil((PERCENTAGE_TARGET_WIDTH - estimatedSystemTextWidth(label)) / HAIR_SPACE_WIDTH)),
+  );
+  return `${compensation}${label}`;
+}
+
 export function windowLabel(window: UsageWindow | null, fallback: string): string {
   return `${usageWindowName(window, fallback)} ${percentageLabel(window)}`;
 }
 
 export function alignedWindowLabel(window: UsageWindow | null, fallback: string): string {
-  const figureSpace = "\u2007";
-  return `${usageWindowName(window, fallback)} ${percentageLabel(window).padStart(4, figureSpace)}`;
+  return `${usageWindowName(window, fallback)} ${alignedPercentageLabel(window)}`;
 }
 
 export function resetTooltip(window: UsageWindow | null): string | undefined {
