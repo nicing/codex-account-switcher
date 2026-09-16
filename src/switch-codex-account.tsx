@@ -25,12 +25,13 @@ import { getCopy } from "./lib/i18n";
 import {
   accountSubtitle,
   accountTitle,
+  percentageLabel,
   planColor,
   planLabel,
   resetTooltip,
   sourceTooltip,
+  usageWindowName,
   usageSummary,
-  windowLabel,
 } from "./lib/presentation";
 
 type ViewState = {
@@ -196,11 +197,26 @@ export default function Command() {
             keywords={[account.email, account.alias ?? "", account.account_name ?? "", account.plan ?? ""]}
             accessories={[
               {
-                text: `${windowLabel(account.usage.primary, copy.fiveHour)} | ${windowLabel(account.usage.secondary, copy.week)}`,
-                tooltip:
-                  [resetTooltip(account.usage.primary), resetTooltip(account.usage.secondary)]
-                    .filter(Boolean)
-                    .join("\n") || undefined,
+                text: usageWindowName(account.usage.primary, copy.fiveHour),
+                tooltip: resetTooltip(account.usage.primary),
+              },
+              {
+                text: { value: percentageLabel(account.usage.primary), color: Color.PrimaryText },
+                tooltip: resetTooltip(account.usage.primary),
+              },
+              {
+                icon: {
+                  source: "quota-divider.svg",
+                  tintColor: { light: "#B8B8BC", dark: "#6A6A6E", adjustContrast: false },
+                },
+              },
+              {
+                text: usageWindowName(account.usage.secondary, copy.week),
+                tooltip: resetTooltip(account.usage.secondary),
+              },
+              {
+                text: { value: percentageLabel(account.usage.secondary), color: Color.PrimaryText },
+                tooltip: resetTooltip(account.usage.secondary),
               },
               {
                 tag: {

@@ -50,7 +50,7 @@ export function remainingPercent(window: UsageWindow | null): number | null {
   return Math.max(0, Math.min(100, Math.round(100 - window.used_percent)));
 }
 
-function usageWindowName(window: UsageWindow | null, fallback: string): string {
+export function usageWindowName(window: UsageWindow | null, fallback: string): string {
   if (!window) return fallback;
   const copy = getCopy();
   const duration = window.window_minutes;
@@ -59,7 +59,7 @@ function usageWindowName(window: UsageWindow | null, fallback: string): string {
   return copy.hours(Math.round(duration / 60));
 }
 
-function percentageLabel(window: UsageWindow | null): string {
+export function percentageLabel(window: UsageWindow | null): string {
   const remaining = remainingPercent(window);
   return remaining === null ? "--" : `${remaining}%`;
 }
