@@ -10,7 +10,6 @@ This extension uses [`codex-auth`](https://github.com/loongphy/codex-auth) for a
 - Search and switch between accounts saved by `codex-auth`
 - Remove an account after a confirmation prompt
 - View 5-hour and weekly usage, reset times, plan type, and update time
-- Use the interface in English or Simplified Chinese
 - Choose between current usage from OpenAI and local cached usage
 - Optionally show the active account's remaining usage in the menu bar
 
@@ -42,12 +41,6 @@ Switching accounts updates `~/.codex/auth.json`. Restart a running Codex CLI or 
 
 When the active account is removed, `codex-auth` selects another saved account. Removing the final account also removes the local Codex login.
 
-## Language
-
-English is the default interface language. To use Simplified Chinese, open the extension settings in Raycast and change **Language** to **简体中文**.
-
-Raycast command names, preference labels, and Store metadata remain in English. List content, actions, notifications, confirmation dialogs, menu bar content, usage labels, dates, and extension-generated errors follow the selected language.
-
 ## Usage Refresh Modes
 
 **Current via OpenAI** asks `codex-auth` to retrieve current usage with the saved ChatGPT authentication. It provides fresher information but makes a network request when the extension refreshes.
@@ -56,9 +49,15 @@ Raycast command names, preference labels, and Store metadata remain in English. 
 
 Current usage relies on an internal ChatGPT endpoint used by `codex-auth`. It is not a documented public API and may change without notice. Local cached usage remains available when a current refresh cannot be completed.
 
+## External Service
+
+`codex-auth` is an independent, open-source MIT-licensed CLI and is not bundled with this extension. Users install it separately and authenticate through the Codex login flow. The extension does not ask users to paste API keys or account tokens.
+
+The optional current-usage refresh asks `codex-auth` to access an internal ChatGPT usage endpoint with the user's existing local authentication. That endpoint is not a documented public API, may change or stop working, and remains subject to [OpenAI's Terms of Use](https://openai.com/policies/terms-of-use/). The extension does not bypass usage limits or provide access beyond the signed-in account.
+
 ## Privacy
 
-The extension invokes the locally installed `codex-auth` executable and reads account metadata from `~/.codex/accounts/registry.json`. It does not read or transmit the authentication tokens stored in `~/.codex/auth.json`.
+The extension invokes the locally installed `codex-auth` executable and reads account metadata from `~/.codex/accounts/registry.json`. It does not read, display, or copy authentication tokens stored in `~/.codex/auth.json`. When the user selects current usage, `codex-auth` performs the network request with the user's existing local authentication.
 
 ## Development
 

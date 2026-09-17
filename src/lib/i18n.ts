@@ -1,7 +1,3 @@
-import { getPreferenceValues } from "@raycast/api";
-
-export type Language = "en" | "zh-CN";
-
 export type Copy = {
   locale: string;
   fiveHour: string;
@@ -46,7 +42,6 @@ export type Copy = {
   refreshUsage: string;
   copyEmail: string;
   remainingUsage: string;
-  dataSource: (source: string) => string;
   switchAccount: string;
   extensionPreferences: string;
   days: (count: number) => string;
@@ -123,7 +118,6 @@ const english: Copy = {
   refreshUsage: "Refresh Usage",
   copyEmail: "Copy Email",
   remainingUsage: "Remaining Usage",
-  dataSource: (source) => `Source: ${source}`,
   switchAccount: "Switch Account",
   extensionPreferences: "Extension Preferences",
   days: (count) => `${count} ${count === 1 ? "day" : "days"}`,
@@ -158,82 +152,6 @@ const english: Copy = {
     "codex-auth did not confirm the removal. Refresh the account list before trying again.",
 };
 
-const simplifiedChinese: Copy = {
-  locale: "zh-CN",
-  fiveHour: "5小时",
-  week: "周",
-  unknown: "未知",
-  retry: "重试",
-  tryAgain: "请稍后重试",
-  addAccount: "新增账户",
-  refresh: "刷新",
-  openExtensionPreferences: "打开扩展设置",
-  searchPlaceholder: "搜索账户、别名或工作区",
-  unableToReadAccounts: "无法读取 Codex 账户",
-  unableToReadUsage: "无法读取 Codex 额度。",
-  codexAuthRequired: "需要安装 codex-auth",
-  codexAuthRequiredDescription: "请安装 codex-auth 0.3.0 或更新版本，然后重试。",
-  copyInstallCommand: "复制安装命令",
-  installCommandCopied: "安装命令已复制",
-  openInstallationGuide: "打开安装文档",
-  noSavedAccounts: "还没有保存的账户",
-  noSavedAccountsDescription: "登录 Codex 后，账户会自动添加到这里。",
-  accountAlreadyActive: "这个账户已在使用",
-  switchingTo: (account) => `正在切换到 ${account}`,
-  switchedTo: (account) => `已切换到 ${account}`,
-  restartCodexClient: "重启正在运行的 Codex 客户端后生效",
-  switchFailed: "切换失败",
-  openingCodexLogin: "正在打开 Codex 登录",
-  completeLoginInBrowser: "请在浏览器中完成登录",
-  accountAdded: "账户已添加",
-  newAccountIsActive: "新账户已设为当前账户",
-  loginFailed: "登录失败",
-  removeAccountTitle: (account) => `删除 ${account}？`,
-  removeLastActiveAccountMessage: "这是当前使用的最后一个账户。删除后，本机 Codex 登录也会被移除。",
-  removeActiveAccountMessage: "这是当前使用的账户。删除后，codex-auth 会自动选择另一个已保存账户。",
-  removeAccountMessage: "将从 codex-auth 中删除这个账户。此操作无法撤销。",
-  removeAccount: "删除账户",
-  removingAccount: (account) => `正在删除 ${account}`,
-  accountRemoved: "账户已删除",
-  activeAccountUpdated: "当前 Codex 账户已更新",
-  removeFailed: "删除失败",
-  currentAccount: "当前账户",
-  switchToThisAccount: "切换到这个账户",
-  refreshUsage: "刷新额度",
-  copyEmail: "复制邮箱",
-  remainingUsage: "剩余额度",
-  dataSource: (source) => `数据来源：${source}`,
-  switchAccount: "切换账户",
-  extensionPreferences: "扩展设置",
-  days: (count) => `${count}天`,
-  hours: (count) => `${count}小时`,
-  resetTime: (value) => `重置时间：${value}`,
-  sourceRealtime: "实时",
-  sourceLocal: "本地缓存",
-  sourceCache: "缓存",
-  sourceNone: "暂无",
-  missingAuthentication: "缺少认证",
-  refreshFailed: "刷新失败",
-  updateTimeUnknown: "更新时间未知",
-  updatedAt: (value) => `更新于 ${value}`,
-  sourceAndUpdateTime: (source, updatedAt) => `数据来源：${source} · 更新时间：${updatedAt}`,
-  executableNotFoundAt: (filePath) => `找不到可执行文件：${filePath}`,
-  codexAuthNotFound: "未找到 codex-auth。请先安装 0.3.0 或更新版本，或在扩展设置中填写路径。",
-  emptyOutput: "codex-auth 没有返回数据。",
-  invalidOutput: "无法读取 codex-auth 输出。请确认已安装 0.3.0 或更新版本。",
-  requestTimedOut: "codex-auth 请求超时。",
-  unsupportedVersion: "当前 codex-auth 版本不支持 Raycast 所需的 JSON 接口。请升级到 0.3.0 或更新版本。",
-  processFailed: "codex-auth 执行失败。",
-  registryReadFailed: (filePath) => `无法读取 ${filePath}`,
-  unsupportedRegistry: "不支持的 codex-auth 账户注册表格式。",
-  unsupportedSchema: "不支持的 codex-auth JSON 格式。",
-  accountNotFound: "找不到要切换的账户。",
-  switchNotConfirmed: "codex-auth 没有确认账户切换结果。",
-  removalStateUnknown: "账户删除后无法确认本地状态，请刷新账户列表后再操作。",
-  removalNotConfirmed: "codex-auth 没有确认账户已删除，请刷新账户列表后再操作。",
-};
-
 export function getCopy(): Copy {
-  const preferences = getPreferenceValues<{ language?: Language }>();
-  return preferences.language === "zh-CN" ? simplifiedChinese : english;
+  return english;
 }
