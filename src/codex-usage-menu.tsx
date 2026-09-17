@@ -100,8 +100,14 @@ export default function Command() {
             subtitle={displayedAccountTitle === account.email ? undefined : account.email}
           />
           <MenuBarExtra.Section title={copy.remainingUsage}>
-            <MenuBarExtra.Item title={menuUsageLabel(account.usage.primary, copy.fiveHour)} onAction={load} />
-            <MenuBarExtra.Item title={menuUsageLabel(account.usage.secondary, copy.week)} onAction={load} />
+            <MenuBarExtra.Item
+              title={menuUsageLabel(account.usage.primary, copy.fiveHour, false)}
+              onAction={load}
+            />
+            <MenuBarExtra.Item
+              title={menuUsageLabel(account.usage.secondary, copy.week, true)}
+              onAction={load}
+            />
             <MenuBarExtra.Item title={copy.dataSource(sourceLabel(account.usage))} />
           </MenuBarExtra.Section>
         </>
@@ -129,8 +135,8 @@ async function openSwitcher() {
   await launchCommand({ name: "switch-codex-account", type: LaunchType.UserInitiated });
 }
 
-function menuUsageLabel(window: UsageWindow | null, fallback: string) {
-  const reset = resetTooltip(window);
+function menuUsageLabel(window: UsageWindow | null, fallback: string, includeResetDate: boolean) {
+  const reset = resetTooltip(window, includeResetDate);
   return reset ? `${windowLabel(window, fallback)} (${reset})` : windowLabel(window, fallback);
 }
 

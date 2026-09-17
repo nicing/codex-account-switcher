@@ -68,14 +68,13 @@ export function windowLabel(window: UsageWindow | null, fallback: string): strin
   return `${usageWindowName(window, fallback)} ${percentageLabel(window)}`;
 }
 
-export function resetTooltip(window: UsageWindow | null): string | undefined {
+export function resetTooltip(window: UsageWindow | null, includeDate = true): string | undefined {
   if (!window?.resets_at) return undefined;
   const copy = getCopy();
   const date = new Date(window.resets_at * 1000);
   return copy.resetTime(
     new Intl.DateTimeFormat(copy.locale, {
-      month: "numeric",
-      day: "numeric",
+      ...(includeDate ? { month: "numeric", day: "numeric" } : {}),
       hour: "2-digit",
       minute: "2-digit",
     }).format(date),
