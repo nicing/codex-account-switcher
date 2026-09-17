@@ -20,7 +20,13 @@ import {
   listAccounts,
 } from "./lib/codex-auth";
 import { getCopy } from "./lib/i18n";
-import { accountTitle, remainingPercent, resetTooltip, sourceLabel, windowLabel } from "./lib/presentation";
+import {
+  accountTitle,
+  remainingPercent,
+  resetTooltip,
+  updatedAtLabel,
+  windowLabel,
+} from "./lib/presentation";
 
 type MenuState = {
   account?: CodexAccount;
@@ -111,7 +117,7 @@ export default function Command() {
               title={menuUsageLabel(account.usage.secondary, copy.week, true)}
               onAction={load}
             />
-            <MenuBarExtra.Item title={copy.dataSource(sourceLabel(account.usage))} />
+            <MenuBarExtra.Item title={updatedAtLabel(account.usage)} />
           </MenuBarExtra.Section>
         </>
       ) : null}
