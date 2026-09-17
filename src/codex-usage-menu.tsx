@@ -14,6 +14,7 @@ import {
   CODEX_AUTH_INSTALL_URL,
   CodexAccount,
   CodexAuthError,
+  UsageWindow,
   getRefreshMode,
   listAccounts,
 } from "./lib/codex-auth";
@@ -51,6 +52,7 @@ export default function Command() {
   }, [load]);
 
   const account = state.account;
+  const displayedAccountTitle = account ? accountTitle(account) : undefined;
   const primaryRemaining = remainingPercent(account?.usage.primary ?? null);
   const menuTitle = primaryRemaining === null ? undefined : `${primaryRemaining}%`;
   const tooltip = account
@@ -92,16 +94,14 @@ export default function Command() {
       ) : null}
       {!installRequired && account ? (
         <>
-          <MenuBarExtra.Item icon={Icon.Person} title={accountTitle(account)} subtitle={account.email} />
+          <MenuBarExtra.Item
+            icon={Icon.Person}
+            title={displayedAccountTitle ?? account.email}
+            subtitle={displayedAccountTitle === account.email ? undefined : account.email}
+          />
           <MenuBarExtra.Section title={copy.remainingUsage}>
-            <MenuBarExtra.Item
-              title={windowLabel(account.usage.primary, copy.fiveHour)}
-              subtitle={resetTooltip(account.usage.primary)}
-            />
-            <MenuBarExtra.Item
-              title={windowLabel(account.usage.secondary, copy.week)}
-              subtitle={resetTooltip(account.usage.secondary)}
-            />
+            <MenuBarExtra.Item title={menuUsageLabel(account.usage.primary, copy.fiveHour)} onAction={load} />
+            <MenuBarExtra.Item title={menuUsageLabel(account.usage.secondary, copy.week)} onAction={load} />
             <MenuBarExtra.Item title={copy.dataSource(sourceLabel(account.usage))} />
           </MenuBarExtra.Section>
         </>
@@ -127,6 +127,11 @@ export default function Command() {
 
 async function openSwitcher() {
   await launchCommand({ name: "switch-codex-account", type: LaunchType.UserInitiated });
+}
+
+function menuUsageLabel(window: UsageWindow | null, fallback: string) {
+  const reset = resetTooltip(window);
+  return reset ? `${windowLabel(window, fallback)} (${reset})` : windowLabel(window, fallback);
 }
 
 async function copyInstallCommand() {
