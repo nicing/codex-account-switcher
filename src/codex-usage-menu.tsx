@@ -117,11 +117,7 @@ export default function Command() {
       ) : null}
       {!installRequired ? (
         <MenuBarExtra.Section>
-          <MenuBarExtra.Item
-            icon={Icon.TwoArrowsClockwise}
-            title={copy.switchAccount}
-            onAction={openSwitcher}
-          />
+          <MenuBarExtra.Item icon={Icon.Switch} title={copy.switchAccount} onAction={openSwitcher} />
           <MenuBarExtra.Item icon={Icon.ArrowClockwise} title={copy.refresh} onAction={load} />
           <MenuBarExtra.Item
             icon={Icon.Gear}
