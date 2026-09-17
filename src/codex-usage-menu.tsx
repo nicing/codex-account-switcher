@@ -63,7 +63,9 @@ export default function Command() {
 
   return (
     <MenuBarExtra
-      icon={state.error ? Icon.Warning : { source: "menu-bar-icon.png", tintColor: Color.PrimaryText }}
+      icon={
+        state.error ? Icon.Warning : { source: "menu-bar-icon-outline-v2.png", tintColor: Color.PrimaryText }
+      }
       title={menuTitle}
       tooltip={tooltip}
       isLoading={state.isLoading}
