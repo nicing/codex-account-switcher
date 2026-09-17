@@ -62,7 +62,7 @@ export default function Command() {
 
   return (
     <MenuBarExtra
-      icon={state.error ? Icon.Warning : Icon.Gauge}
+      icon={state.error ? Icon.Warning : "icon.png"}
       title={menuTitle}
       tooltip={tooltip}
       isLoading={state.isLoading}
