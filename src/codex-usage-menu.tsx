@@ -68,9 +68,6 @@ export default function Command() {
       {installRequired ? (
         <>
           <MenuBarExtra.Item icon={Icon.Terminal} title={copy.codexAuthRequired} />
-          {copy.codexAuthRequiredDescriptionLines.map((line) => (
-            <MenuBarExtra.Item key={line} title={line} />
-          ))}
           <MenuBarExtra.Section>
             <MenuBarExtra.Item
               icon={Icon.Clipboard}
