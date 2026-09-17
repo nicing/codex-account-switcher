@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Clipboard,
+  Color,
   Icon,
   LaunchType,
   MenuBarExtra,
@@ -62,7 +63,7 @@ export default function Command() {
 
   return (
     <MenuBarExtra
-      icon={state.error ? Icon.Warning : "icon.png"}
+      icon={state.error ? Icon.Warning : { source: "menu-bar-icon.png", tintColor: Color.PrimaryText }}
       title={menuTitle}
       tooltip={tooltip}
       isLoading={state.isLoading}
